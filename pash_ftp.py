@@ -4,10 +4,6 @@ import threading
 import shutil
 
 
-def open_ftp(ftp_server, ftp_user, ftp_password):
-    return ftplib.FTP(ftp_server, ftp_user, ftp_password)
-
-
 class Downloader:
 
     def __init__(self, server, username, password, ftp_directory, ftp_file, threads):
@@ -15,7 +11,7 @@ class Downloader:
         self.username = username
         self.password = password
         self.directory = ftp_directory
-        self.ftp = open_ftp(self.server, self.username, self.password)
+        self.ftp = ftplib.FTP(self.server, self.username, self.password)
         self.file = ftp_file
         self.file_path = self.directory + '/' + self.file
         self.parts = threads
@@ -46,7 +42,7 @@ class DownloadPart:
         self.username = username
         self.password = password
         self.directory = ftp_directory
-        self.ftp = open_ftp(self.server, self.username, self.password)
+        self.ftp = ftplib.FTP(self.server, self.username, self.password)
         self.file = ftp_file
         self.file_path = self.directory + '/' + self.file
         self.part_number = part_number
