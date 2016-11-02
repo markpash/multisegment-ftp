@@ -5,15 +5,21 @@ import shutil
 
 
 class Downloader:
-    def __init__(self, ftp_server = '', ftp_user = '', ftp_password = ''):
+    def __init__(self, ftp_type = 'ftp', ftp_server = '', ftp_user = '', ftp_password = ''):
         if ftp_server is not '':
-            self.connect(ftp_server, ftp_user, ftp_password)
+            self.connect(ftp_type, ftp_server, ftp_user, ftp_password)
 
-    def connect(self, ftp_server, ftp_user, ftp_password = ''):
+    def connect(self, ftp_type, ftp_server, ftp_user, ftp_password = ''):
+        self.ftp_type = ftp_type
         self.ftp_server = ftp_server
         self.ftp_user = ftp_user
         self.ftp_password = ftp_password
-        self.ftp = ftplib.FTP(self.ftp_server, self.ftp_user, self.ftp_password)
+        if ftp_type.lower() == 'ftp':
+            self.ftp = ftplib.FTP(self.ftp_server, self.ftp_user, self.ftp_password)
+        elif ftp_type.lower() == 'ftps':
+            self.ftp = ftplib.FTP_TLS(self.ftp_server, self.ftp_user, self.ftp_password)
+        else:
+            print('use a valid ftp type')
 
     def download(self, ftp_file_path, threads):
         self.ftp_file_path = ftp_file_path
@@ -28,7 +34,12 @@ class Downloader:
                 this_chunk_size = self.last_chunk_size
             else:
                 this_chunk_size = self.chunk_size
-            ftp = ftplib.FTP(self.ftp_server, self.ftp_user, self.ftp_password)
+
+            if self.ftp_type.lower() == 'ftp':
+                ftp = ftplib.FTP(self.ftp_server, self.ftp_user, self.ftp_password)
+            elif self.ftp_type.lower() == 'ftps':
+                ftp = ftplib.FTP_TLS(self.ftp_server, self.ftp_user, self.ftp_password)
+
             partdownloaders.append(DownloadPart(ftp, self.ftp_file_path, part, self.chunk_size * part, this_chunk_size))
         for part in partdownloaders:
             part.thread.join()
@@ -53,6 +64,7 @@ class DownloadPart:
 
     def receive_thread(self):
         try:
+            self.ftp.prot_p()
             self.ftp.retrbinary('RETR ' + self.ftp_file_path, self.on_data, 100000, self.part_start)
         except:
             pass
